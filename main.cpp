@@ -4,64 +4,69 @@
 #include <cstdlib>
 #include <vector>
 #include <map>
+#include <iterator>
 
 using namespace std;
 
 class Subject{
 private:
+    string name;
     char returnedOrNot;
     int budget;
     map <string, int> content;
 public:
     Subject();
-    ~Subject();
+    Subject(string name, char returnedOrNot, int budget){
+        this->name = name;
+        this->returnedOrNot = returnedOrNot;
+        this->budget = budget;
+    }
+    //~Subject();
+    void add(string con, int pri){
+        content[con] = pri;
+    }
+    int total(){
+        int total = 0;
+        for(map <string, int>::iterator it = content.begin(); it != content.end(); it++)
+            total += it->second;
+        return total;
+    }
+    int left(){   //잔액
+        return this->budget - this->total();
+    }
+    void print(){
+        cout << name << " " << returnedOrNot << " " << budget << " ";
+        for(map <string, int>::iterator it = content.begin(); it != content.end(); it++)
+            cout << it->first << " " << it->second << " ";
+        cout << this->total() << " " << this->left() << endl;
+    }
 };
 
 int scanNonReturned(){
     ifstream fp("입출금내역.txt");
-    /*string sub, yesOrNot, str, num;
-    int left, budget, total = 0, returned = 0;
-    vector <string> content;
-    vector <int> price;
-    getline(fp, sub, ' ');   //항목 저장
-    getline(fp, num, ' ');
-    left = stoi(num);   //잔액 저장
-    getline(fp, num, ' ');
-    budget = stoi(num);   //예산 저장
-    do{
-        getline(fp, str, ' ');
-        if(str == "Y" || str == "N")
-            break;
-        content.push_back(str);
-        getline(fp, num, ' ');
-        price.push_back(stoi(num));
-        total += stoi(num);
-    }while(true);
-    yesOrNot = str;*/
-    string sub, str;
+    string name, str, str_;
     char returnedOrNot;
-    int budget;
-    getline(fp, sub, ' ');
-    getline(fp, str, ' ');
-    returnedOrNot = str[0];
-    if(returnedOrNot == 'N'){
+    int budget, num;
+
+    while(!fp.eof()){
+        getline(fp, name, ' ');
         getline(fp, str, ' ');
-        budget = stoi(str);
-        do{
+        returnedOrNot = str[0];
+        if(returnedOrNot == 'N'){
             getline(fp, str, ' ');
-            cout << str;
-            if(str == "\\")
-                break;
-        }while(true);
+            budget = stoi(str);
+            Subject sub(name, returnedOrNot, budget);
+            do{
+                getline(fp, str, ' ');
+                if(str == "\\")
+                    break;
+                getline(fp, str_, ' ');
+                sub.add(str, stoi(str_));
+            }while(true);
+            sub.print();
+        }
     }
-
-
     fp.close();
-    /*cout << "항목: " << sub << " 잔액: " << left << " 예산: " << budget << endl;
-    for(int i = 0; i < content.size(); i++)
-        cout << "내용: " << content[i] << " 가격: " <<  price[i];
-    cout << endl;
-    cout << "환입여부: " << yesOrNot << " 합계: " << total << " 환입금: " << returned << endl;*/
     return 0;
 }
 
