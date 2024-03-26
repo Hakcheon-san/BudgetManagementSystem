@@ -3,12 +3,23 @@
 #include <string>
 #include <cstdlib>
 #include <vector>
+#include <map>
 
 using namespace std;
 
+class Subject{
+private:
+    char returnedOrNot;
+    int budget;
+    map <string, int> content;
+public:
+    Subject();
+    ~Subject();
+};
+
 int scanNonReturned(){
     ifstream fp("입출금내역.txt");
-    string sub, yesOrNot, str, num;
+    /*string sub, yesOrNot, str, num;
     int left, budget, total = 0, returned = 0;
     vector <string> content;
     vector <int> price;
@@ -17,19 +28,40 @@ int scanNonReturned(){
     left = stoi(num);   //잔액 저장
     getline(fp, num, ' ');
     budget = stoi(num);   //예산 저장
-    getline(fp, str, ' ');
-    while(str != "Y" && str != "N"){
-        content.push_back(str);   //내용 저장
+    do{
+        getline(fp, str, ' ');
+        if(str == "Y" || str == "N")
+            break;
+        content.push_back(str);
         getline(fp, num, ' ');
-        price.push_back(stoi(num));   //금액 저장
+        price.push_back(stoi(num));
         total += stoi(num);
+    }while(true);
+    yesOrNot = str;*/
+    string sub, str;
+    char returnedOrNot;
+    int budget;
+    getline(fp, sub, ' ');
+    getline(fp, str, ' ');
+    returnedOrNot = str[0];
+    if(returnedOrNot == 'N'){
+        getline(fp, str, ' ');
+        budget = stoi(str);
+        do{
+            getline(fp, str, ' ');
+            cout << str;
+            if(str == "\\")
+                break;
+        }while(true);
     }
-    yesOrNot = str;
+
+
     fp.close();
-    cout << "항목: " << sub << " 잔액: " << left << " 예산: " << budget;
+    /*cout << "항목: " << sub << " 잔액: " << left << " 예산: " << budget << endl;
     for(int i = 0; i < content.size(); i++)
-        cout << " 내용: " << content[i] << " 가격: " <<  price[i];
-    cout << " 환입여부: " << yesOrNot << " 합계: " << total << " 환입금: " << returned << endl;
+        cout << "내용: " << content[i] << " 가격: " <<  price[i];
+    cout << endl;
+    cout << "환입여부: " << yesOrNot << " 합계: " << total << " 환입금: " << returned << endl;*/
     return 0;
 }
 
