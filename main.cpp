@@ -42,11 +42,13 @@ public:
     }
 };
 
+typedef Subject sub;
+
 int scanNonReturned(){
     ifstream fp("입출금내역.txt");
     string name, str, str_;
     char returnedOrNot;
-    int budget, num;
+    int budget;
 
     while(!fp.eof()){
         getline(fp, name, ' ');
@@ -55,15 +57,15 @@ int scanNonReturned(){
         if(returnedOrNot == 'N'){
             getline(fp, str, ' ');
             budget = stoi(str);
-            Subject sub(name, returnedOrNot, budget);
+            Subject subject(name, returnedOrNot, budget);
             do{
                 getline(fp, str, ' ');
                 if(str == "\\")
                     break;
                 getline(fp, str_, ' ');
-                sub.add(str, stoi(str_));
+                subject.add(str, stoi(str_));
             }while(true);
-            sub.print();
+            subject.print();
         }
     }
     fp.close();
@@ -74,7 +76,7 @@ int scanReturned(){
     ifstream fp("입출금내역.txt");
     string name, str, str_;
     char returnedOrNot;
-    int budget, num;
+    int budget;
 
     while(!fp.eof()){
         getline(fp, name, ' ');
@@ -83,15 +85,15 @@ int scanReturned(){
         if(returnedOrNot == 'Y'){
             getline(fp, str, ' ');
             budget = stoi(str);
-            Subject sub(name, returnedOrNot, budget);
+            Subject subject(name, returnedOrNot, budget);
             do{
                 getline(fp, str, ' ');
                 if(str == "\\")
                     break;
                 getline(fp, str_, ' ');
-                sub.add(str, stoi(str_));
+                subject.add(str, stoi(str_));
             }while(true);
-            sub.print();
+            subject.print();
         }
     }
     fp.close();
@@ -102,7 +104,7 @@ int scanAll(){
     ifstream fp("입출금내역.txt");
     string name, str, str_;
     char returnedOrNot;
-    int budget, num;
+    int budget;
 
     while(!fp.eof()){
         getline(fp, name, ' ');
@@ -110,45 +112,71 @@ int scanAll(){
         returnedOrNot = str[0];
         getline(fp, str, ' ');
         budget = stoi(str);
-        Subject sub(name, returnedOrNot, budget);
+        Subject subject(name, returnedOrNot, budget);
         do{
             getline(fp, str, ' ');
             if(str == "\\")
                 break;
             getline(fp, str_, ' ');
-            sub.add(str, stoi(str_));
+            subject.add(str, stoi(str_));
         }while(true);
-        sub.print();
+        subject.print();
     }
     fp.close();
     return 0;
 }
 
 int scan(){
-    string sub;
+    string subject;
     cout << "조회할 항목을 입력하세요" << endl;
     cout << "미환입 환입 전체 돌아가기" << endl;
     try{
-        getline(cin, sub);
+        getline(cin, subject);
         cout << endl;
-        if(sub == "미환입")
+        if(subject == "미환입")
             scanNonReturned();
-        else if(sub == "환입")
+        else if(subject == "환입")
             scanReturned();
-        else if(sub == "전체")
+        else if(subject == "전체")
             scanAll();
-        else if(sub == "돌아가기")
+        else if(subject == "돌아가기")
             return 1;
         else
-            throw sub;
-    }catch(string sub){
+            throw subject;
+    }catch(string subject){
         //잘못된 입력
     }
     return 0;
 }
 
 int addSubject(){
-    cout << "addSubject 함수" << endl;
+    vector <sub> subjects;
+    ifstream fp("입출금내역.txt");
+    string name, str, str_;
+    char returnedOrNot;
+    int budget;
+
+    while(!fp.eof()){
+        getline(fp, name, ' ');
+        getline(fp, str, ' ');
+        returnedOrNot = str[0];
+        getline(fp, str, ' ');
+        budget = stoi(str);
+        Subject subject(name, returnedOrNot, budget);
+        do{
+            getline(fp, str, ' ');
+            if(str == "\\")
+                break;
+            getline(fp, str_, ' ');
+            subject.add(str, stoi(str_));
+        }while(true);
+        subjects.push_back(subject);
+    }
+
+    for(int i = 0; i < subjects.size(); i++)
+        subjects[i].print();
+
+    fp.close();
     return 0;
 }
 
