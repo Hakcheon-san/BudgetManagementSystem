@@ -5,8 +5,11 @@
 #include <vector>
 #include <map>
 #include <iterator>
+#include <list>
 
 using namespace std;
+
+typedef map <string, int> con;
 
 class Subject{
 private:
@@ -25,6 +28,18 @@ public:
     void add(string con, int pri){
         content[con] = pri;
     }
+    string _name(){
+        return name;
+    }
+    char _returnedOrNot(){
+        return returnedOrNot;
+    }
+    int _budget(){
+        return budget;
+    }
+    con _content(){
+        return content;
+    }
     int total(){
         int total = 0;
         for(map <string, int>::iterator it = content.begin(); it != content.end(); it++)
@@ -39,6 +54,7 @@ public:
         for(map <string, int>::iterator it = content.begin(); it != content.end(); it++)
             cout << it->first << " " << it->second << " ";
         cout << this->total() << " " << this->left() << endl;
+        cout << endl;
     }
 };
 
@@ -150,33 +166,51 @@ int scan(){
 }
 
 int addSubject(){
-    vector <sub> subjects;
-    ifstream fp("입출금내역.txt");
+    list <sub> subjects;
     string name, str, str_;
     char returnedOrNot;
     int budget;
 
-    while(!fp.eof()){
-        getline(fp, name, ' ');
-        getline(fp, str, ' ');
+    ifstream ifp("입출금내역.txt");
+    while(!ifp.eof()){
+        getline(ifp, name, ' ');
+        getline(ifp, str, ' ');
         returnedOrNot = str[0];
-        getline(fp, str, ' ');
+        getline(ifp, str, ' ');
         budget = stoi(str);
         Subject subject(name, returnedOrNot, budget);
         do{
-            getline(fp, str, ' ');
+            getline(ifp, str, ' ');
             if(str == "\\")
                 break;
-            getline(fp, str_, ' ');
+            getline(ifp, str_, ' ');
             subject.add(str, stoi(str_));
         }while(true);
         subjects.push_back(subject);
     }
-
-    for(int i = 0; i < subjects.size(); i++)
-        subjects[i].print();
-
-    fp.close();
+    ifp.close();
+    ofstream ofp("입출금내역.txt");
+    cout << "항목 이름: ";
+    getline(cin, name);   //to do:항목명 입력시 뛰어쓰기 못하게 하기
+    cout << endl;
+    cout << "예산: ";
+    getline(cin, str);   //to do:예산 입력시 숫자외 못하게 하기
+    cout << endl;
+    budget = stoi(str);
+    Subject subject(name, 'N', budget);
+    subjects.push_back(subject);
+    list <sub>::iterator it = subjects.begin();
+    do{
+        ofp << it->_name() << " " << it->_returnedOrNot() << " " << it->_budget() << " ";
+        con content = it->_content();
+        for(map <string, int>::iterator it_ = content.begin(); it_ != content.end(); it_++)
+            ofp << it_->first << " " << it_->second << " ";
+        ofp << "\\";
+        if(++it == subjects.end())
+            continue;
+        ofp << " ";
+    }while(it != subjects.end());
+    ofp.close();
     return 0;
 }
 
@@ -228,7 +262,7 @@ int home(){
         cout << endl;
         if(act == "조회"){
             while(true)
-                if(!scan())
+                if(scan())
                     break;
         }
         else if(act == "추가")
