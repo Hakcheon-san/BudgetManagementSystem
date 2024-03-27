@@ -71,19 +71,63 @@ int scanNonReturned(){
 }
 
 int scanReturned(){
-    cout << "scanReturned 함수" << endl;
+    ifstream fp("입출금내역.txt");
+    string name, str, str_;
+    char returnedOrNot;
+    int budget, num;
+
+    while(!fp.eof()){
+        getline(fp, name, ' ');
+        getline(fp, str, ' ');
+        returnedOrNot = str[0];
+        if(returnedOrNot == 'Y'){
+            getline(fp, str, ' ');
+            budget = stoi(str);
+            Subject sub(name, returnedOrNot, budget);
+            do{
+                getline(fp, str, ' ');
+                if(str == "\\")
+                    break;
+                getline(fp, str_, ' ');
+                sub.add(str, stoi(str_));
+            }while(true);
+            sub.print();
+        }
+    }
+    fp.close();
     return 0;
 }
 
 int scanAll(){
-    cout << "scanAll 함수" << endl;
+    ifstream fp("입출금내역.txt");
+    string name, str, str_;
+    char returnedOrNot;
+    int budget, num;
+
+    while(!fp.eof()){
+        getline(fp, name, ' ');
+        getline(fp, str, ' ');
+        returnedOrNot = str[0];
+        getline(fp, str, ' ');
+        budget = stoi(str);
+        Subject sub(name, returnedOrNot, budget);
+        do{
+            getline(fp, str, ' ');
+            if(str == "\\")
+                break;
+            getline(fp, str_, ' ');
+            sub.add(str, stoi(str_));
+        }while(true);
+        sub.print();
+    }
+    fp.close();
     return 0;
 }
 
 int scan(){
     string sub;
     cout << "조회할 항목을 입력하세요" << endl;
-    cout << "미환입 환입 전체" << endl;
+    cout << "미환입 환입 전체 돌아가기" << endl;
     try{
         getline(cin, sub);
         cout << endl;
@@ -93,6 +137,8 @@ int scan(){
             scanReturned();
         else if(sub == "전체")
             scanAll();
+        else if(sub == "돌아가기")
+            return 1;
         else
             throw sub;
     }catch(string sub){
@@ -152,8 +198,11 @@ int home(){
     try{
         getline(cin, act);
         cout << endl;
-        if(act == "조회")
-            scan();
+        if(act == "조회"){
+            while(true)
+                if(!scan())
+                    break;
+        }
         else if(act == "추가")
             add();
         else if(act == "삭제")
@@ -167,7 +216,6 @@ int home(){
     }catch(string act){
         //잘못된 입력
     }
-    cout << endl;
     return 0;
 }
 
