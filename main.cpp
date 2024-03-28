@@ -1,3 +1,5 @@
+//to do:빈페이지를 읽었을 때 error가 나지않게 하기
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -59,64 +61,10 @@ public:
 };
 
 typedef Subject sub;
+typedef list <sub> subs;
 
-int scanNonReturned(){
-    ifstream fp("입출금내역.txt");
-    string name, str, str_;
-    char returnedOrNot;
-    int budget;
-
-    while(!fp.eof()){
-        getline(fp, name, ' ');
-        getline(fp, str, ' ');
-        returnedOrNot = str[0];
-        if(returnedOrNot == 'N'){
-            getline(fp, str, ' ');
-            budget = stoi(str);
-            Subject subject(name, returnedOrNot, budget);
-            do{
-                getline(fp, str, ' ');
-                if(str == "\\")
-                    break;
-                getline(fp, str_, ' ');
-                subject.add(str, stoi(str_));
-            }while(true);
-            subject.print();
-        }
-    }
-    fp.close();
-    return 0;
-}
-
-int scanReturned(){
-    ifstream fp("입출금내역.txt");
-    string name, str, str_;
-    char returnedOrNot;
-    int budget;
-
-    while(!fp.eof()){
-        getline(fp, name, ' ');
-        getline(fp, str, ' ');
-        returnedOrNot = str[0];
-        if(returnedOrNot == 'Y'){
-            getline(fp, str, ' ');
-            budget = stoi(str);
-            Subject subject(name, returnedOrNot, budget);
-            do{
-                getline(fp, str, ' ');
-                if(str == "\\")
-                    break;
-                getline(fp, str_, ' ');
-                subject.add(str, stoi(str_));
-            }while(true);
-            subject.print();
-        }
-    }
-    fp.close();
-    return 0;
-}
-
-int scanAll(){
+subs readSubjects(){
+    subs subjects;
     ifstream fp("입출금내역.txt");
     string name, str, str_;
     char returnedOrNot;
@@ -136,9 +84,50 @@ int scanAll(){
             getline(fp, str_, ' ');
             subject.add(str, stoi(str_));
         }while(true);
-        subject.print();
+        //subject.print();
+        subjects.push_back(subject);
     }
     fp.close();
+    return subjects;
+}
+
+int writeSubjects(subs subjects){
+    ofstream ofp("입출금내역.txt");
+    list <sub>::iterator it = subjects.begin();
+    do{
+        ofp << it->_name() << " " << it->_returnedOrNot() << " " << it->_budget() << " ";
+        con content = it->_content();
+        for(map <string, int>::iterator it_ = content.begin(); it_ != content.end(); it_++)
+            ofp << it_->first << " " << it_->second << " ";
+        ofp << "\\";
+        if(++it == subjects.end())
+            continue;
+        ofp << " ";
+    }while(it != subjects.end());
+    ofp.close();
+    return 0;
+}
+
+int scanNonReturned(){
+    subs subjects = readSubjects();
+    for(list <sub>::iterator it = subjects.begin(); it != subjects.end(); it++)
+        if(it->_returnedOrNot() == 'N')
+            it->print();
+    return 0;
+}
+
+int scanReturned(){
+    subs subjects = readSubjects();
+    for(list <sub>::iterator it = subjects.begin(); it != subjects.end(); it++)
+        if(it->_returnedOrNot() == 'Y')
+            it->print();
+    return 0;
+}
+
+int scanAll(){
+    subs subjects = readSubjects();
+    for(list <sub>::iterator it = subjects.begin(); it != subjects.end(); it++)
+        it->print();
     return 0;
 }
 
@@ -166,30 +155,10 @@ int scan(){
 }
 
 int addSubject(){
-    list <sub> subjects;
-    string name, str, str_;
-    char returnedOrNot;
+    subs subjects = readSubjects();
+    string name, str;
     int budget;
 
-    ifstream ifp("입출금내역.txt");
-    while(!ifp.eof()){
-        getline(ifp, name, ' ');
-        getline(ifp, str, ' ');
-        returnedOrNot = str[0];
-        getline(ifp, str, ' ');
-        budget = stoi(str);
-        Subject subject(name, returnedOrNot, budget);
-        do{
-            getline(ifp, str, ' ');
-            if(str == "\\")
-                break;
-            getline(ifp, str_, ' ');
-            subject.add(str, stoi(str_));
-        }while(true);
-        subjects.push_back(subject);
-    }
-    ifp.close();
-    ofstream ofp("입출금내역.txt");
     cout << "항목 이름: ";
     getline(cin, name);   //to do:항목명 입력시 뛰어쓰기 못하게 하기
     cout << endl;
@@ -199,23 +168,39 @@ int addSubject(){
     budget = stoi(str);
     Subject subject(name, 'N', budget);
     subjects.push_back(subject);
-    list <sub>::iterator it = subjects.begin();
-    do{
-        ofp << it->_name() << " " << it->_returnedOrNot() << " " << it->_budget() << " ";
-        con content = it->_content();
-        for(map <string, int>::iterator it_ = content.begin(); it_ != content.end(); it_++)
-            ofp << it_->first << " " << it_->second << " ";
-        ofp << "\\";
-        if(++it == subjects.end())
-            continue;
-        ofp << " ";
-    }while(it != subjects.end());
-    ofp.close();
+    writeSubjects(subjects);
     return 0;
 }
 
 int addContent(){
-    cout << "addContent 함수" << endl;
+    list <sub> subjects = readSubjects();
+    string name, content, str;
+    int price;
+
+    for(list <sub>::iterator it = subjects.begin(); it != subjects.end(); it++)
+        cout << it->_name() << endl;
+    do{
+        cout << "항목: ";
+        getline(cin, name);
+        list <sub>::iterator it = subjects.begin();
+        do{
+            if(name == it->_name()){
+                cout << "내용: ";
+                getline(cin, content);   //to do:내용 입력시 뛰어쓰기 못하게 하기
+                cout << endl;
+                cout << "금액: ";
+                getline(cin, str);   //to do:예산 입력시 숫자외 못하게 하기
+                cout << endl;
+                price = stoi(str);
+                it->add(content, price);
+                break;
+            }
+            it++;
+        }while(it != subjects.end());
+        if(it != subjects.end())
+            break;
+    }while(true);
+    writeSubjects(subjects);
     return 0;
 }
 
