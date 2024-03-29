@@ -28,7 +28,7 @@ public:
         this->returnedOrNot = returnedOrNot;
         this->budget = budget;
     }
-    ~Subject();
+    //~Subject();
     string _name(){
         return name;
     }
@@ -272,12 +272,13 @@ int delSubject(){
                 break;
             }
             it++;
-        }while(true);
+        }while(it != subjects.end());
         if(it != subjects.end())
             break;
     }while(true);
     return 0;
 }
+
 int delContent(){
     cout << "delContent함수" << endl;
 }
