@@ -1,6 +1,6 @@
 //to do:빈페이지를 읽었을 때 error가 나지않게 하기
 //to do:추가할 때 취소 기능 만들기 - done
-//to do:찾는 항목명이 없을 때 재입력 시키기 -done
+//to do:찾는 항목명이 없을 때 재입력 시키기 - done
 
 #include <iostream>
 #include <fstream>
@@ -28,7 +28,7 @@ public:
         this->returnedOrNot = returnedOrNot;
         this->budget = budget;
     }
-    //~Subject();
+    ~Subject() {};
     string _name(){
         return name;
     }
@@ -43,6 +43,18 @@ public:
     }
     void add(string con, int pri){
         content[con] = pri;
+    }
+    int del(string str){
+        try{
+            for(map <string, int>::iterator it = content.begin(); it != content.end(); it++)
+                if(str == it->first){
+                    content.erase(it);
+                    return 0;
+                }
+            throw str;
+        }catch(string str){
+            return 1;   //일치하는 내용 없음
+        }
     }
     int total(){
         int total = 0;
@@ -69,6 +81,21 @@ public:
 typedef Subject sub;
 typedef list <sub> subs;
 
+void printErrorMessage(int errorCode){
+    cout << "오류가 발생했습니다. 오류코드: " << errorCode << endl;
+    switch(errorCode){
+    case 1:
+        cout << "(주의)추가/삭제/환입을 하면 데이터가 삭제될 수 있습니다." << endl;
+        break;
+    default:
+        break;
+    }
+    cout << endl;
+    cout << "AS: (+82)10-4305-0252 연중무휴" << endl;
+    cout << endl;
+    return;
+}
+
 subs readSubjects(){
     subs subjects;
     ifstream fp("db.txt");
@@ -78,17 +105,31 @@ subs readSubjects(){
 
     while(!fp.eof()){
         getline(fp, name, ' ');
+        if(name.length() == 0)
+            return subjects;
         getline(fp, str, ' ');
         returnedOrNot = str[0];
         getline(fp, str, ' ');
-        budget = stoi(str);
+        try {
+            budget = stoi(str);
+        }catch(exception E){
+            printErrorMessage(1);
+            subs emptySubjects;
+            return emptySubjects;
+        }
         Subject subject(name, returnedOrNot, budget);
         do{
             getline(fp, str, ' ');
             if(str == "\\")
                 break;
             getline(fp, str_, ' ');
-            subject.add(str, stoi(str_));
+            try{
+                subject.add(str, stoi(str_));
+            }catch(exception E){
+                printErrorMessage(1);
+                subs emptySubjects;
+                return emptySubjects;
+            }
         }while(true);
         //subject.print();
         subjects.push_back(subject);
@@ -280,7 +321,57 @@ int delSubject(){
 }
 
 int delContent(){
-    cout << "delContent함수" << endl;
+    subs subjects = readSubjects();
+    string str;
+    int num, num_ = 1;
+
+    do{
+        for(list <sub>::iterator it = subjects.begin(); it != subjects.end(); it++){
+            con content = it->_content();
+            for(map <string, int>::iterator it_ = content.begin(); it_!= content.end(); it_++){
+            //for(map <string, int>::iterator it_ = it->_content().begin(); it_ != it->_content().end(); it_++){
+                cout << num_++ << " " << it->_name() << " " << it_->first << " " << it_->second << " 원" << endl;
+            }
+        }
+        cout << endl;
+        cout << "번호/취소: ";
+        getline(cin, str);   //to do:번호 입력시 숫자외 못하게 하기
+        cout << endl;
+        if(str == "취소"){
+            break;
+        }
+        num = stoi(str);
+        num_ = 1;
+        list <sub>::iterator it = subjects.begin();
+        do{
+            con content = it->_content();
+            map <string, int>::iterator it_ = content.begin();
+            do{
+                if(num == num_){
+                    do{
+                        cout << it->_name() << " " << it_->first << " " << it_->second << "원을 삭제하시겠습니까?" << endl;
+                        cout << "예 아니오" << endl;
+                        getline(cin, str);
+                        cout << endl;
+                        if(str == "예"){
+                            it->del(it_->first);
+                            writeSubjects(subjects);
+                            break;
+                        }else if(str == "아니오")
+                            break;
+                    }while(true);
+                    break;
+                }
+                num_++;
+                it_++;
+            }while(it_ != content.end());
+            if(it_ != content.end())
+                break;
+            it++;
+        }while(it != subjects.end());
+        if(it != subjects.end())
+            break;
+    }while(true);
 }
 
 int del(){
@@ -346,11 +437,6 @@ int ret(){
         if(it != subjects.end())
             break;
     }while(true);
-    return 0;
-}
-
-int invalid(){
-    cout << "invalid 함수" << endl;
     return 0;
 }
 
