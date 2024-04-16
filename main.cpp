@@ -1,4 +1,4 @@
-//to do:빈페이지를 읽었을 때 error가 나지않게 하기
+//to do:빈페이지를 읽었을 때 error가 나지않게 하기 - done
 //to do:추가할 때 취소 기능 만들기 - done
 //to do:찾는 항목명이 없을 때 재입력 시키기 - done
 
@@ -41,6 +41,12 @@ public:
     }
     con _content(){
         return content;
+    }
+    bool exist(string con){
+        for(map <string, int>::iterator it = content.begin(); it != content.end(); it++)
+            if(con == it->first)
+                return true;
+        return false;
     }
     void add(string con, int pri){
         content[con] = pri;
@@ -96,7 +102,7 @@ void printErrorMessage(int errorCode){
         break;
     }
     cout << endl;
-    cout << "AS: (+82)10-4305-0252 연중무휴" << endl;
+    cout << "--- AS: +(82)10-4305-0252 연중무휴 ---" << endl;
     cout << endl;
     return;
 }
@@ -133,7 +139,7 @@ subs readSubjects(){
             try{
                 subject.add(str, stoi(str_));
             }catch(exception E){
-                //errorOccured();
+                errorOccured();
                 printErrorMessage(1);
                 fp.close();
                 subs emptySubjects;
@@ -150,12 +156,8 @@ subs readSubjects(){
 int writeSubjects(subs subjects){
     ofstream ofp("db.txt");
 
-    if(subjects.empty()){
-        ofp.close();
-        return 0;
-    }
     list <sub>::iterator it = subjects.begin();
-    do{
+    while(it != subjects.end()){
         ofp << it->_name() << " " << it->_returnedOrNot() << " " << it->_budget() << " ";
         con content = it->_content();
         for(map <string, int>::iterator it_ = content.begin(); it_ != content.end(); it_++)
@@ -164,7 +166,7 @@ int writeSubjects(subs subjects){
         if(++it == subjects.end())
             continue;
         ofp << " ";
-    }while(it != subjects.end());
+    }
     ofp.close();
     return 0;
 }
@@ -172,12 +174,8 @@ int writeSubjects(subs subjects){
 int backup(subs subjects){
     ofstream ofp("backup.txt");
 
-    if(subjects.empty()){
-        ofp.close();
-        return 0;
-    }
     list <sub>::iterator it = subjects.begin();
-    do{
+    while(it != subjects.end()){
         ofp << it->_name() << " " << it->_returnedOrNot() << " " << it->_budget() << " ";
         con content = it->_content();
         for(map <string, int>::iterator it_ = content.begin(); it_ != content.end(); it_++)
@@ -186,7 +184,7 @@ int backup(subs subjects){
         if(++it == subjects.end())
             continue;
         ofp << " ";
-    }while(it != subjects.end());
+    }
     ofp.close();
     return 0;
 }
@@ -237,13 +235,23 @@ int scan(){
     return 0;
 }
 
-int addSubject(){
+bool exist(string name){
+    subs subjects = readSubjects();
+    for(list <sub>::iterator it = subjects.begin(); it != subjects.end(); it++)
+        if(it->_name() == name)
+            return true;
+    return false;
+}
+
+int addSubject(){   //항목X -> 예산
     subs subjects = readSubjects();
     string name, str;
     int budget;
 
+    if(!ERROR_UNOCCURED)
+        return -1;
     do{
-        cout << "항목 이름/취소: ";
+        cout << "예산/취소: ";
         getline(cin, name);   //to do:항목명 입력시 뛰어쓰기 못하게 하기 - done
         cout << endl;
         if(name.find(' ') != string::npos){
@@ -253,8 +261,13 @@ int addSubject(){
         }
         if(name == "취소")
             break;
+        if(exist(name)){
+            cout << name << " 이(가) 이미 있습니다. 다른 이름을 입력하세요" << endl;
+            cout << endl;
+            continue;
+        }
         do{
-            cout << "예산/취소: ";
+            cout << "금액/취소: ";
             getline(cin, str);   //to do:예산 입력시 숫자외 못하게 하기 - done
             cout << endl;
             if(str.find(' ') != string::npos){
@@ -283,17 +296,19 @@ int addSubject(){
     return 0;
 }
 
-int addContent(){
+int addContent(){   //내용X -> 지출
     list <sub> subjects = readSubjects();
     string name, content, str;
     int price;
 
+    if(!ERROR_UNOCCURED)
+        return -1;
     do{
         for(list <sub>::iterator it = subjects.begin(); it != subjects.end(); it++)
             cout << it->_name() << endl;
         cout << "취소" << endl;
         cout << endl;
-        cout << "항목: ";
+        cout << "예산: ";
         getline(cin, name);
         cout << endl;
         if(name == "취소")
@@ -301,7 +316,7 @@ int addContent(){
         list <sub>::iterator it = subjects.begin();
         do{
             if(name == it->_name()){
-                cout << "내용/취소: ";
+                cout << "지출/취소: ";
                 getline(cin, content);   //to do:내용 입력시 뛰어쓰기 못하게 하기 - done
                 cout << endl;
                 if(content.find(' ') != string::npos){
@@ -311,6 +326,11 @@ int addContent(){
                 }
                 if(content == "취소")
                     break;
+                if(it->exist(content)){
+                    cout << content << " 이(가) 이미 있습니다. 다른 이름을 입력하세요" << endl;
+                    cout << endl;
+                    continue;
+                }
                 do{
                     cout << "금액/취소: ";
                     getline(cin, str);   //to do:예산 입력시 숫자외 못하게 하기 - done
@@ -345,15 +365,15 @@ int add(){
 
     do{
         cout << "무엇을 추가하시겠습니까?" << endl;
-        cout << "항목 내용 취소" << endl;
+        cout << "예산 지출 취소" << endl;
         try{
             getline(cin, whatToAdd);
             cout << endl;
-            if(whatToAdd == "항목"){
+            if(whatToAdd == "예산"){
                 addSubject();
                 break;
             }
-            else if(whatToAdd == "내용"){
+            else if(whatToAdd == "지출"){
                 addContent();
                 break;
             }else if(whatToAdd == "취소")
@@ -367,16 +387,18 @@ int add(){
     return 0;
 }
 
-int delSubject(){
+int delSubject(){   //항목X -> 예산
     subs subjects = readSubjects();
     string name;
 
+    if(!ERROR_UNOCCURED)
+        return -1;
     do{
         for(list <sub>::iterator it = subjects.begin(); it != subjects.end(); it++)
             cout << it->_name() << endl;
         cout << "취소" << endl;
         cout << endl;
-        cout << "항목: ";
+        cout << "예산: ";
         getline(cin, name);
         cout << endl;
         if(name == "취소")
@@ -399,11 +421,13 @@ int delSubject(){
     return 0;
 }
 
-int delContent(){
+int delContent(){   //내용X -> 지출
     subs subjects = readSubjects();
     string str;
     int num, num_;
 
+    if(!ERROR_UNOCCURED)
+        return -1;
     do{
         num_ = 1;
         for(list <sub>::iterator it = subjects.begin(); it != subjects.end(); it++){
@@ -417,9 +441,8 @@ int delContent(){
         cout << "번호/취소: ";
         getline(cin, str);   //to do:번호 입력시 숫자외 못하게 하기 - done
         cout << endl;
-        if(str == "취소"){
+        if(str == "취소")
             break;
-        }
         try{
             num = stoi(str);
         }catch(exception E){
@@ -467,15 +490,15 @@ int del(){
 
     do{
         cout << "무엇을 삭제하시겠습니까?" << endl;
-        cout << "항목 내용 취소" << endl;
+        cout << "예산 지출 취소" << endl;
         try{
             getline(cin, whatToDel);
             cout << endl;
-            if(whatToDel == "항목"){
+            if(whatToDel == "예산"){
                 delSubject();
                 break;
             }
-            else if(whatToDel == "내용"){
+            else if(whatToDel == "지출"){
                 delContent();
                 break;
             }else if(whatToDel == "취소")
@@ -493,13 +516,15 @@ int ret(){
     subs subjects = readSubjects();
     string name, str;
 
+    if(!ERROR_UNOCCURED)
+        return -1;
     do{
         for(list <sub>::iterator it = subjects.begin(); it != subjects.end(); it++)
             if(it->_returnedOrNot() == 'N')
                 cout << it->_name() << " " << it->left() << "원" << endl;
         cout << "취소" << endl;
         cout << endl;
-        cout << "항목: ";
+        cout << "예산: ";
         getline(cin, name);
         cout << endl;
         if(name == "취소")
@@ -507,6 +532,10 @@ int ret(){
         list <sub>::iterator it = subjects.begin();
             do{
                 if(name == it->_name()){
+                    if(it->_returnedOrNot() == 'Y'){
+                        it = subjects.end();
+                        break;
+                    }
                     cout << name << " " << it->left() << "원을 환입하시겠습니까?" << endl;
                     cout << "예 아니오" << endl;
                     getline(cin, str);
@@ -514,7 +543,7 @@ int ret(){
                     if(str == "예"){
                         it->ret();
                         writeSubjects(subjects);
-                        //if(ERROR_UNOCCURED)
+                        if(ERROR_UNOCCURED)
                             backup(subjects);
                         break;
                     }else if(str == "아니오")
