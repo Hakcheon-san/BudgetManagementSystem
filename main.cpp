@@ -1,6 +1,7 @@
 //to do:빈페이지를 읽었을 때 error가 나지않게 하기 - done
 //to do:추가할 때 취소 기능 만들기 - done
 //to do:찾는 항목명이 없을 때 재입력 시키기 - done
+//to do:예산 초과했을 경우 환입 처리
 
 #include <iostream>
 #include <fstream>
@@ -48,6 +49,12 @@ public:
                 return true;
         return false;
     }
+    int exceed(int price){
+        if(this->total() + price > budget)
+            return this->total() + price - budget;
+        else
+            return 0;
+    }
     void add(string con, int pri){
         content[con] = pri;
     }
@@ -70,17 +77,24 @@ public:
         return total;
     }
     int left(){   //잔액
-        return this->budget - this->total();
+        return budget - this->total();
     }
     void ret(){   //환입
         returnedOrNot = 'Y';
         content["환입"] = this->left();
     }
     void print(){
-        cout << name << " " << returnedOrNot << " " << budget << " ";
+        cout << name << endl;
+        cout << "환입: "<< returnedOrNot << " 예산: " << budget << " " << endl;
+        cout << "내역: ";
         for(map <string, int>::iterator it = content.begin(); it != content.end(); it++)
             cout << it->first << " " << it->second << " ";
-        cout << this->total() << " " << this->left() << endl;
+        cout << endl;
+        cout << "합계: " << this->total() << " 잔액: ";
+        if(this->exceed(0))
+            cout << "+" << this->exceed(0) << "(초과)" << endl;
+        else
+            cout << this->left() << endl;
         cout << endl;
     }
 };
@@ -344,7 +358,20 @@ int addContent(){   //내용X -> 지출
                         cout << endl;
                         continue;
                     }
-                    it->add(content, price);
+                    if(it->exceed(price)){
+                        do{
+                            cout << "예산을 " << it->exceed(price) << "원 초과합니다. 추가하시겠습니까?" << endl;
+                            cout << "예 아니오" << endl;
+                            getline(cin, str);
+                            cout << endl;
+                            if(str == "예"){
+                                it->add(content, price);
+                                break;
+                            }else if(str == "아니오")
+                                break;
+                        }while(true);
+                    }else
+                        it->add(content, price);
                     writeSubjects(subjects);
                     if(ERROR_UNOCCURED)
                         backup(subjects);
@@ -514,7 +541,7 @@ int del(){
 
 int ret(){
     subs subjects = readSubjects();
-    string name, str;
+    string name, str, _str;
 
     if(!ERROR_UNOCCURED)
         return -1;
